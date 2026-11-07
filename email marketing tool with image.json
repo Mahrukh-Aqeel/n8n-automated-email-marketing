@@ -1,0 +1,364 @@
+{
+  "name": "email marketing tool with image",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1680,
+        592
+      ],
+      "id": "ea7e6e2f-c067-43bc-abd7-f389dfc06dc9",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appji4w6rx6ytf5W9",
+          "mode": "list",
+          "cachedResultName": "send email",
+          "cachedResultUrl": "https://airtable.com/appji4w6rx6ytf5W9"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblJYBmgFlWjwaW89",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appji4w6rx6ytf5W9/tblJYBmgFlWjwaW89"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1472,
+        496
+      ],
+      "id": "274fefb8-3ca1-4648-a02f-cc6e330d22c8",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "RjaVSfwb8FmGMuJs",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Send Marketing Email",
+        "formDescription": "Fill out the form to send a marketing email to your subscribers",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Email Subject",
+              "fieldName": "subject",
+              "placeholder": "Enter email subject",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email Message",
+              "fieldType": "textarea",
+              "fieldName": "message",
+              "placeholder": "Enter your email message",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Attach Image (Optional)",
+              "fieldType": "file",
+              "fieldName": "image",
+              "multipleFiles": false,
+              "acceptFileTypes": ".png,.jpg,.jpeg"
+            }
+          ]
+        },
+        "options": {
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "Your message was delivered to the Airtable recipients."
+            }
+          }
+        }
+      },
+      "id": "48372087-1c6d-4be0-b1d2-acf7990a45ce",
+      "name": "Marketing Email Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        1248,
+        496
+      ],
+      "webhookId": "89a1591c-e727-460c-935d-c86b4596c14b"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "1",
+              "leftValue": "={{ $(\"Marketing Email Form\").first().binary.image }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "06d1f95b-cd6e-4bbd-bac6-2f59a4daa2fb",
+      "name": "Check If Image Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1664,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.recipientEmail }}",
+        "subject": "={{ $json.emailSubject }}",
+        "message": "={{ $json.emailMessage.replace(/\\r\\n/g, \"<br>\").replace(/\\n/g, \"<br>\") }}",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "image"
+              }
+            ]
+          }
+        }
+      },
+      "id": "9d4f5c06-d3cc-4973-9103-e2193c5e6db0",
+      "name": "Send Email With Image",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2208,
+        464
+      ],
+      "webhookId": "75b6cbe4-c17a-47e6-9363-166813889540",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AFOISWRXN9NkWusw",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.fields.Email }}",
+        "subject": "={{ $(\"Marketing Email Form\").first().json.subject }}",
+        "message": "={{ $(\"Marketing Email Form\").first().json.message.replace(/\\r\\n/g, \"<br>\").replace(/\\n/g, \"<br>\") }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "d5baf15e-e726-4f3d-94dd-cb7e9b4afbd2",
+      "name": "Send Email Without Image",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1968,
+        512
+      ],
+      "webhookId": "381da667-58ee-4569-ae14-751acf48cfb6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AFOISWRXN9NkWusw",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "recipientEmail",
+              "value": "={{ $json.fields.Email }}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "recipientName",
+              "value": "={{ $json.fields.Name }}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "emailSubject",
+              "value": "={{ $(\"Marketing Email Form\").first().json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "emailMessage",
+              "value": "={{ $(\"Marketing Email Form\").first().json.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "62f5c75c-5057-4e0b-8872-bbe3efa8fde6",
+      "name": "Prepare Email With Image",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1856,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "image",
+              "value": "={{ $(\"Marketing Email Form\").first().binary.image }}",
+              "type": "binary"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "18b6cdcd-9fc0-40a1-89db-6b0681ae9c5d",
+      "name": "Move Binary Image",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2112,
+        272
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Check If Image Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing Email Form": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Image Exists": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email With Image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Email Without Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email With Image": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email Without Image": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email With Image": {
+      "main": [
+        [
+          {
+            "node": "Move Binary Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move Binary Image": {
+      "main": [
+        [
+          {
+            "node": "Send Email With Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6cdfeaf9-a6c5-46f9-8df6-01a0003d95e8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bcbf4e1876b4fb8000a3adb46ff5eb41f47e0693b3ddc514a46715d8104d5250"
+  },
+  "id": "3FSGefnHRJPFI7TQ",
+  "tags": []
+}
